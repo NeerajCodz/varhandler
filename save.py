@@ -37,7 +37,7 @@ def save(file, save, datatype=None, delimiter='=', parse_delimiter='='):
             line = f"{name}{delimiter}{value}\n"
             file.write(line)
 
-def search(file, value, save, delimiter='=', parse_delimiter='='):
+def search(file, save, value, delimiter='=', parse_delimiter='='):
     """
     Search for a specific variable in the loaded variables and save it to a file.
 
@@ -83,28 +83,23 @@ def load_variables(file, save, parse_delimiter='=', datatype=None):
     Returns:
         dict: Dictionary containing the loaded variables.
     """
-    original_dictionary = {}
-    with open(file, 'r') as file:
-        lines = file.readlines()
+    variables = load_variables(file, parse_delimiter)
 
-    for line in lines:
-        variable, value = parse_line(line, parse_delimiter)
-        if variable:
-            # Remove quotes from the value
-            if value.startswith("'") and value.endswith("'"):
-                value = value[1:-1]
-            # Check if the value matches the specified datatype
-            if datatype is None or \
-               (datatype == str and (value.startswith('"') and value.endswith('"')) or \
-                                    (value.startswith("'") and value.endswith("'"))) or \
-               (datatype == int and value.isnumeric()) or \
-               (datatype == float and is_float(value)) or \
-               (datatype == list and value.startswith('[') and value.endswith(']')) or \
-               (datatype == tuple and value.startswith('(') and value.endswith(')')) or \
-               (datatype == dict and value.startswith('{') and value.endswith('}')):
-                original_dictionary[variable] = value
+    # Filter variables based on datatype if specified
+    if datatype:
+        filtered_variables = {}
+        for var, val in variables.items():
+            if ((datatype == str and isinstance(val, str)) or
+                (datatype == int and isinstance(val, int)) or
+                (datatype == float and isinstance(val, float)) or
+                (datatype == list and val.startswith('[') and val.endswith(']')) or
+                (datatype == tuple and val.startswith('(') and val.endswith(')')) or
+                (datatype == dict and val.startswith('{') and val.endswith('}'))):
+                filtered_variables[var] = val
 
-    return original_dictionary
+        return filtered_variables
+
+    return variables
 
 
 def is_float(value):
